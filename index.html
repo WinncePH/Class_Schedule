@@ -1,17 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<!-- Website Tab Logo / Favicon -->
-<link rel="icon" type="image/png" href="images/logo.jpg">
-
-<!-- Browser and Mobile Icon -->
-<link rel="apple-touch-icon" href="images/logo.jpg">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Class Schedule Maker</title>
+
+    <!-- Website Tab Logo / Favicon -->
+    <link rel="icon" type="image/png" href="images/logo.jpg">
+
+    <!-- Browser and Mobile Icon -->
+    <link rel="apple-touch-icon" href="images/logo.jpg">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -291,13 +294,8 @@
         .schedule-top h2 {
             margin: 0;
             color: var(--dark);
-            font-size: 21px;
-        }
-
-        .schedule-top p {
-            color: #929bb0;
-            font-size: 12px;
-            margin-top: 5px;
+            font-size: 16px;
+            letter-spacing: .5px;
         }
 
         /* STUDENT INFORMATION */
@@ -363,7 +361,8 @@
             border: 1px solid #777;
             text-align: center;
             padding: 3px;
-            font-size: 12px;
+            font-size: 15px;
+            font-weight: 800;
         }
 
         th {
@@ -380,8 +379,9 @@
         }
 
         .time-cell {
-            height: 26px;
-            font-size: 11px;
+            height: 28px;
+            font-size: 13px;
+            font-weight: 800;
             white-space: nowrap;
         }
 
@@ -401,21 +401,24 @@
             font-family: Georgia, serif;
             line-height: 1.45;
             color: #252525;
-            font-size: 12px;
+            font-size: 15px;
+            font-weight: 800;
         }
 
         .subject-card strong {
             display: block;
-            font-size: 13px;
+            font-size: 16px;
+            font-weight: 800;
             margin-bottom: 3px;
         }
 
         .subject-card small {
             display: block;
             font-family: Arial, sans-serif;
-            font-size: 9px;
-            margin-top: 4px;
-            color: #555;
+            font-size: 12px;
+            font-weight: 800;
+            margin-top: 5px;
+            color: #222;
         }
 
         /* SATURDAY CHURCH */
@@ -569,25 +572,32 @@
 
             .schedule-top {
                 justify-content: center;
-                margin-bottom: 10px;
+                margin-bottom: 6px;
             }
 
             .schedule-top h2 {
                 color: black;
-                font-size: 20px;
+                font-size: 14px;
             }
 
-            .schedule-top p {
-                color: black;
-            }
-
+            /* Student info: no border, compact, always 2 columns */
             .student-info {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
                 background: #f0f0f0 !important;
-                border: 1px solid black;
-                padding: 10px;
-                margin-bottom: 12px;
+                border: none !important;
+                border-radius: 0;
+                padding: 6px 10px;
+                margin-bottom: 6px;
                 print-color-adjust: exact;
                 -webkit-print-color-adjust: exact;
+            }
+
+            .info-icon {
+                width: 30px;
+                height: 30px;
+                font-size: 15px;
             }
 
             .table-wrapper {
@@ -603,28 +613,52 @@
             th,
             td {
                 border: 1px solid black;
+                font-size: 15px;
+                font-weight: 800;
                 print-color-adjust: exact;
                 -webkit-print-color-adjust: exact;
             }
 
             th {
                 background: #ddd !important;
+                height: 28px;
             }
 
             .subject-card {
-                font-size: 10px;
+                font-size: 14px;
+                font-weight: 800;
+                line-height: 1.3;
             }
 
             .subject-card strong {
-                font-size: 11px;
+                font-size: 16px;
+                font-weight: 900;
             }
 
             .subject-card small {
-                font-size: 8px;
+                font-size: 12px;
+                font-weight: 800;
+                color: #111;
+                margin-top: 3px;
             }
 
             .time-cell {
-                height: 20px;
+                height: 23px;
+                font-size: 13px;
+                font-weight: 900;
+            }
+
+            .empty-cell {
+                height: 23px;
+            }
+
+            .church-cell {
+                font-size: 17px;
+            }
+
+            .church-cell small {
+                font-size: 12px;
+                font-weight: 900;
             }
 
             .subject-cell {
@@ -784,7 +818,7 @@
                         + Create Schedule
                     </button>
 
-                    <button type="reset" class="clear-btn">
+                    <button type="reset" class="clear-btn" id="clearBtn">
                         Clear Form
                     </button>
 
@@ -803,7 +837,6 @@
 
                 <div>
                     <h2>MY CLASS SCHEDULE</h2>
-                    <p>Weekly Academic Timetable</p>
                 </div>
 
                 <div class="actions no-print" style="margin:0;">
@@ -937,6 +970,20 @@
         let subjects = [];
 
 
+        // SWEET ALERT HELPERS
+
+        function showWarning(message) {
+
+            Swal.fire({
+                icon: "warning",
+                title: "Oops!",
+                text: message,
+                confirmButtonColor: "#315bea"
+            });
+
+        }
+
+
         // TIME CONVERTER
 
         function timeToMinutes(time) {
@@ -981,7 +1028,7 @@
 
                 if (!studentName || !studentCourse) {
 
-                    alert("Please enter your name and course/year level first.");
+                    showWarning("Please enter your name and course/year level first.");
 
                     return;
 
@@ -1018,7 +1065,7 @@
 
                 if (days.length === 0) {
 
-                    alert("Please select at least one class day.");
+                    showWarning("Please select at least one class day.");
 
                     return;
 
@@ -1034,7 +1081,7 @@
 
                 if (startMinutes >= endMinutes) {
 
-                    alert("End time must be later than start time.");
+                    showWarning("End time must be later than start time.");
 
                     return;
 
@@ -1046,7 +1093,7 @@
                     endMinutes % 30 !== 0
                 ) {
 
-                    alert("Please use 30-minute intervals.");
+                    showWarning("Please use 30-minute intervals.");
 
                     return;
 
@@ -1058,7 +1105,7 @@
                     endMinutes > 1080
                 ) {
 
-                    alert("Class time must be between 7:00 AM and 6:00 PM.");
+                    showWarning("Class time must be between 7:00 AM and 6:00 PM.");
 
                     return;
 
@@ -1082,7 +1129,12 @@
 
                     if (conflict) {
 
-                        alert("Schedule conflict detected on " + day + "!");
+                        Swal.fire({
+                            icon: "error",
+                            title: "Schedule Conflict!",
+                            text: "You already have a class on " + day + " at that time.",
+                            confirmButtonColor: "#315bea"
+                        });
 
                         return;
 
@@ -1138,16 +1190,66 @@
                 this.reset();
 
 
-                // SMOOTH SCROLL
+                // SUCCESS ALERT
 
-                document.getElementById("scheduleSection")
-                    .scrollIntoView({
+                Swal.fire({
+                    icon: "success",
+                    title: "Schedule Created!",
+                    text: code + " has been added to your schedule.",
+                    confirmButtonColor: "#315bea",
+                    timer: 2000,
+                    timerProgressBar: true
+                }).then(() => {
 
-                        behavior: "smooth",
+                    // SMOOTH SCROLL
 
-                        block: "start"
+                    document.getElementById("scheduleSection")
+                        .scrollIntoView({
 
-                    });
+                            behavior: "smooth",
+
+                            block: "start"
+
+                        });
+
+                });
+
+            });
+
+
+        // CLEAR FORM
+
+        document.getElementById("clearBtn")
+            .addEventListener("click", function (e) {
+
+                // Stop the default reset so we can ask first
+                e.preventDefault();
+
+                Swal.fire({
+                    icon: "question",
+                    title: "Clear Form?",
+                    text: "All the information you typed in the form will be removed.",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, clear it",
+                    cancelButtonText: "Cancel",
+                    confirmButtonColor: "#dc3545",
+                    cancelButtonColor: "#6c757d"
+                }).then(result => {
+
+                    if (result.isConfirmed) {
+
+                        document.getElementById("subjectForm").reset();
+
+                        Swal.fire({
+                            icon: "success",
+                            title: "Form Cleared!",
+                            timer: 1300,
+                            showConfirmButton: false
+                        });
+
+                    }
+
+                });
 
             });
 
@@ -1473,27 +1575,48 @@
 
         function deleteSubject(id) {
 
-            if (!confirm("Are you sure you want to delete this subject?")) {
+            Swal.fire({
+                icon: "warning",
+                title: "Delete Subject?",
+                text: "Are you sure you want to delete this subject?",
+                showCancelButton: true,
+                confirmButtonText: "Yes, delete it",
+                cancelButtonText: "Cancel",
+                confirmButtonColor: "#dc3545",
+                cancelButtonColor: "#6c757d"
+            }).then(result => {
 
-                return;
+                if (!result.isConfirmed) {
 
-            }
+                    return;
 
-
-            subjects = subjects.filter(subject => subject.id !== id);
-
-
-            renderSchedule();
-
-            renderSubjectList();
+                }
 
 
-            if (subjects.length === 0) {
+                subjects = subjects.filter(subject => subject.id !== id);
 
-                document.getElementById("scheduleSection")
-                    .style.display = "none";
 
-            }
+                renderSchedule();
+
+                renderSubjectList();
+
+
+                if (subjects.length === 0) {
+
+                    document.getElementById("scheduleSection")
+                        .style.display = "none";
+
+                }
+
+
+                Swal.fire({
+                    icon: "success",
+                    title: "Deleted!",
+                    timer: 1200,
+                    showConfirmButton: false
+                });
+
+            });
 
         }
 
@@ -1504,7 +1627,7 @@
 
             if (subjects.length === 0) {
 
-                alert("Please create a schedule first.");
+                showWarning("Please create a schedule first.");
 
                 return;
 
